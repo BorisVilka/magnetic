@@ -46,6 +46,15 @@
 	<key>NSAppTransportSecurity</key>
 	<dict>
 	    <key>NSAllowsArbitraryLoads</key>
+	    <true/>
 	</dict>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>https</string>
+		<string>mailto</string>
+		<string>tel</string>
+		<string>viber</string>
+		<string>idramapp</string>
+	</array>
 </dict>
 </plist>
