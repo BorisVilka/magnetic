@@ -18,16 +18,22 @@ dependencies:
   cupertino_icons: ^1.0.2
   change_app_package_name: ^1.0.0
   url_launcher: ^6.0.20
-  webview_flutter: ^3.0.1
   flutter_launcher_icons: ^0.9.2
   rename: ^2.0.1
   external_app_launcher: ^2.0.2
+  # flutter_webview_pro:
+  # The package is needed for loading files in WebView via input type file
+  # https://github.com/wenzhiming/flutter-plugins/pull/5
+  # Remove the custom package with plugins when the changes
+  # from the specified pull request are accepted or the specified
+  # bugs are fixed. In version 3.0.1 + 2 on iOS, the project does
+  # not build due to an outdated dependency.
+  flutter_webview_pro:
+    path: custom_packages/flutter-plugins/packages/webview_flutter/webview_flutter
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
-  flutter_launcher_icons: ^0.9.2
 
 flutter_icons:
   android: true

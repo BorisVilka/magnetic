@@ -4,7 +4,7 @@ import 'package:Magnetic.am/value.dart' as values;
 import 'package:external_app_launcher/external_app_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:webview_flutter/webview_flutter.dart';
+import 'package:flutter_webview_pro/webview_flutter.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -78,21 +78,29 @@ class _HomeScreenState extends State<HomeScreen> {
                   return NavigationDecision.prevent;
                   // Open Viber url schema
                 } else if (request.url.contains('viber:')) {
-                  LaunchApp.openApp(
-                    androidPackageName: 'com.viber.voip',
-                    iosUrlScheme: request.url,
-                    appStoreLink:
-                        'itms-apps://apps.apple.com/am/app/viber/id382617920',
-                  );
+                  if (await canLaunch(request.url)) {
+                    await launch(request.url);
+                  } else {
+                    await LaunchApp.openApp(
+                      androidPackageName: 'com.viber.voip',
+                      iosUrlScheme: request.url,
+                      appStoreLink:
+                          'itms-apps://apps.apple.com/am/app/viber/id382617920',
+                    );
+                  }
                   return NavigationDecision.prevent;
                   // Open idram url schema
                 } else if (request.url.contains('idramapp:')) {
-                  LaunchApp.openApp(
-                    androidPackageName: 'am.imwallet.android',
-                    iosUrlScheme: request.url,
-                    appStoreLink:
-                        'itms-apps://apps.apple.com/am/app/idram-idbank/id558788989',
-                  );
+                  if (await canLaunch(request.url)) {
+                    await launch(request.url);
+                  } else {
+                    await LaunchApp.openApp(
+                      androidPackageName: 'am.imwallet.android',
+                      iosUrlScheme: request.url,
+                      appStoreLink:
+                      'itms-apps://apps.apple.com/am/app/idram-idbank/id558788989',
+                    );
+                  }
                   return NavigationDecision.prevent;
                 }
                 // navigation behaviour default
