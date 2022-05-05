@@ -20,7 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    if (Platform.isAndroid) WebView.platform = AndroidWebView();
+    if (Platform.isAndroid) WebView.platform = SurfaceAndroidWebView();
   }
 
   JavascriptChannel _toasterJavascriptChannel(BuildContext context) {
@@ -62,41 +62,46 @@ class _HomeScreenState extends State<HomeScreen> {
               },
               // Schemas handler
               navigationDelegate: (NavigationRequest request) async {
+                var uriString = request.url;
+                var uri = Uri.tryParse(uriString);
+                if (uri == null) {
+                  return NavigationDecision.navigate;
+                }
                 // html default schemas
-                if (_isWebSchemas(request.url)) {
-                  launch(request.url);
+                if (_isWebSchemas(uriString)) {
+                  launchUrl(uri);
                   return NavigationDecision.prevent;
                   // Schema for whatsapp links
-                } else if (request.url.contains('https://wa.')) {
-                  if (Platform.isIOS && await canLaunch(request.url)) {
+                } else if (uriString.contains('https://wa.')) {
+                  if (Platform.isIOS && await canLaunchUrl(uri)) {
                     // for iOS open link in default webview
                     return NavigationDecision.navigate;
                   } else {
                     // or open link via url handler
-                    await launch(request.url);
+                    await launchUrl(uri, mode: LaunchMode.externalApplication);
                   }
                   return NavigationDecision.prevent;
                   // Open Viber url schema
-                } else if (request.url.contains('viber:')) {
-                  if (await canLaunch(request.url)) {
-                    await launch(request.url);
+                } else if (uriString.contains('viber:')) {
+                  if (await canLaunchUrl(uri)) {
+                    await launchUrl(uri);
                   } else {
                     await LaunchApp.openApp(
                       androidPackageName: 'com.viber.voip',
-                      iosUrlScheme: request.url,
+                      iosUrlScheme: uriString,
                       appStoreLink:
                           'itms-apps://apps.apple.com/am/app/viber/id382617920',
                     );
                   }
                   return NavigationDecision.prevent;
                   // Open idram url schema
-                } else if (request.url.contains('idramapp:')) {
-                  if (await canLaunch(request.url)) {
-                    await launch(request.url);
+                } else if (uriString.contains('idramapp:')) {
+                  if (await canLaunchUrl(uri)) {
+                    await launchUrl(uri);
                   } else {
                     await LaunchApp.openApp(
                       androidPackageName: 'am.imwallet.android',
-                      iosUrlScheme: request.url,
+                      iosUrlScheme: uriString,
                       appStoreLink:
                       'itms-apps://apps.apple.com/am/app/idram-idbank/id558788989',
                     );
