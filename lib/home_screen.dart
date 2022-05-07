@@ -1,27 +1,16 @@
 import 'dart:io';
 
-import 'package:Magnetic.am/value.dart' as values;
+import 'package:Magnetic.am/bottom_navigation_bar.dart';
+import 'package:Magnetic.am/value.dart';
+import 'package:Magnetic.am/web_view_state.dart';
 import 'package:external_app_launcher/external_app_launcher.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_webview_pro/webview_flutter.dart';
+import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
-
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  late WebViewController _controller;
-  double progress = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    if (Platform.isAndroid) WebView.platform = SurfaceAndroidWebView();
-  }
 
   JavascriptChannel _toasterJavascriptChannel(BuildContext context) {
     return JavascriptChannel(
@@ -36,12 +25,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    double _w = MediaQuery.of(context).size.width;
-
+    var state = context.watch<WebViewState>();
     return WillPopScope(
       onWillPop: () async {
-        if (await _controller.canGoBack()) {
-          _controller.goBack();
+        if (await state.canGoBack()) {
+          await state.goBack();
           return true;
         } else {
           return false;
@@ -51,108 +39,91 @@ class _HomeScreenState extends State<HomeScreen> {
           body: SafeArea(
             child: WebView(
               javascriptMode: JavascriptMode.unrestricted,
-              initialUrl: values.url,
+              initialUrl: state.initUri,
               onWebViewCreated: (controller) {
-                _controller = controller;
+                state.controller = controller;
               },
               onProgress: (initProgress) {
-                setState(() {
-                  progress = initProgress / 100;
-                });
+                state.progress = initProgress / 100;
               },
-              // Schemas handler
-              navigationDelegate: (NavigationRequest request) async {
-                var uriString = request.url;
-                var uri = Uri.tryParse(uriString);
-                if (uri == null) {
-                  return NavigationDecision.navigate;
-                }
-                // html default schemas
-                if (_isWebSchemas(uriString)) {
-                  launchUrl(uri);
-                  return NavigationDecision.prevent;
-                  // Schema for whatsapp links
-                } else if (uriString.contains('https://wa.')) {
-                  if (Platform.isIOS && await canLaunchUrl(uri)) {
-                    // for iOS open link in default webview
-                    return NavigationDecision.navigate;
-                  } else {
-                    // or open link via url handler
-                    await launchUrl(uri, mode: LaunchMode.externalApplication);
-                  }
-                  return NavigationDecision.prevent;
-                  // Open Viber url schema
-                } else if (uriString.contains('viber:')) {
-                  if (await canLaunchUrl(uri)) {
-                    await launchUrl(uri);
-                  } else {
-                    await LaunchApp.openApp(
-                      androidPackageName: 'com.viber.voip',
-                      iosUrlScheme: uriString,
-                      appStoreLink:
-                          'itms-apps://apps.apple.com/am/app/viber/id382617920',
-                    );
-                  }
-                  return NavigationDecision.prevent;
-                  // Open idram url schema
-                } else if (uriString.contains('idramapp:')) {
-                  if (await canLaunchUrl(uri)) {
-                    await launchUrl(uri);
-                  } else {
-                    await LaunchApp.openApp(
-                      androidPackageName: 'am.imwallet.android',
-                      iosUrlScheme: uriString,
-                      appStoreLink:
-                      'itms-apps://apps.apple.com/am/app/idram-idbank/id558788989',
-                    );
-                  }
-                  return NavigationDecision.prevent;
-                }
-                // navigation behaviour default
-                return NavigationDecision.navigate;
+              navigationDelegate: (NavigationRequest request) {
+                return navigationDelegateHandler(context, request, state);
               },
               javascriptChannels: <JavascriptChannel>{
                 _toasterJavascriptChannel(context),
               },
             ),
           ),
-          bottomNavigationBar: Container(
-            height: _w / 6.5,
-            color: Colors.white,
-            child: Column(
-              children: [
-                LinearProgressIndicator(
-                  value: progress,
-                  backgroundColor: Colors.white,
-                  color: Colors.black,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    IconButton(
-                        onPressed: () {
-                          _controller.goBack();
-                        },
-                        icon: Icon(
-                          Icons.arrow_back,
-                          color: Colors.black,
-                          size: _w / 14,
-                        )),
-                    IconButton(
-                        onPressed: () {
-                          _controller.reload();
-                        },
-                        icon: Icon(
-                          Icons.refresh,
-                          color: Colors.black,
-                          size: _w / 14,
-                        ))
-                  ],
-                ),
-              ],
-            ),
-          )),
+          bottomNavigationBar: BottomNavBar()),
     );
+  }
+
+  Future<NavigationDecision> navigationDelegateHandler(BuildContext context,
+      NavigationRequest request, WebViewState state) async {
+    // Filtering internal requests for iOS
+    if (Platform.isIOS && !request.isForMainFrame) {
+      return NavigationDecision.navigate;
+    }
+    var uriString = request.url;
+    var uri = Uri.tryParse(uriString);
+    if (uri == null) {
+      return NavigationDecision.navigate;
+    }
+    // html default schemas
+    if (_isWebSchemas(uriString)) {
+      launchUrl(uri);
+      return NavigationDecision.prevent;
+      // Schema for whatsapp links
+    } else if (uriString.contains('viber:')) {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+      } else {
+        await LaunchApp.openApp(
+          androidPackageName: 'com.viber.voip',
+          iosUrlScheme: uriString,
+          appStoreLink: 'itms-apps://apps.apple.com/am/app/viber/id382617920',
+        );
+      }
+      return NavigationDecision.prevent;
+      // Open idram url schema
+    } else if (uriString.contains('idramapp:')) {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+      } else {
+        await LaunchApp.openApp(
+          androidPackageName: 'am.imwallet.android',
+          iosUrlScheme: uriString,
+          appStoreLink:
+              'itms-apps://apps.apple.com/am/app/idram-idbank/id558788989',
+        );
+      }
+      return NavigationDecision.prevent;
+    }
+    if (url.contains(uri.host)) {
+      state.useForcedOpenLinkInDefaultWebView = false;
+    } else if (uriString.contains('https://banking.idram.am') ||
+        uriString.contains('https://money.idram.am')) {
+      return NavigationDecision.navigate;
+    } else {
+      if (uriString.contains('https://online.payx.am')) {
+        state.useForcedOpenLinkInDefaultWebView = true;
+      }
+      LaunchMode mode;
+      if (uriString.contains('http')) {
+        // Needs for handle navigation payment systems
+        if (state.useForcedOpenLinkInDefaultWebView) {
+          return NavigationDecision.navigate;
+        } else {
+          mode = LaunchMode.externalApplication;
+        }
+      } else {
+        mode = LaunchMode.externalNonBrowserApplication;
+      }
+      await launchUrl(uri, mode: mode);
+      return NavigationDecision.prevent;
+    }
+    // navigation behaviour default
+    return NavigationDecision.navigate;
   }
 
   bool _isWebSchemas(String url) {
