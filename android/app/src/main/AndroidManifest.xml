@@ -19,7 +19,7 @@
    </queries>
    <application
         android:label="Magnetic.am"
-        android:name="${applicationName}"
+        android:name=".MyApp"
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic='true'>
         <activity

@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "724640743207",
+    "project_id": "ffff-c5192",
+    "storage_bucket": "ffff-c5192.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:724640743207:android:37ff684622f306ad1c7302",
+        "android_client_info": {
+          "package_name": "com.teamuzakff.magneticc"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "724640743207-bor2bpv8pfvvbhqcr8llud5jaqcj8i9j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBlh_oARIZmwT_V34qfbTpmdoqXG1q-1T0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "724640743207-bor2bpv8pfvvbhqcr8llud5jaqcj8i9j.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

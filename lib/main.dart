@@ -6,11 +6,14 @@ import 'package:Magnetic.am/web_view_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_webview_pro/webview_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:wonderpush_flutter/wonderpush_flutter.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   if (Platform.isAndroid) WebView.platform = SurfaceAndroidWebView();
   runApp(const MyApp());
+  WonderPush.subscribeToNotifications();
+  WonderPush.addProperty("User id", '1');
 }
 
 class MyApp extends StatelessWidget {
